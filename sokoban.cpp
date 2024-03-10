@@ -34,7 +34,7 @@ int main(){
     int children [4][rows][columns], childrenNumber;
     GenerateChildren(initialState,children, childrenNumber );
 
-    cout << "All children (possible state) are :" << endl << endl;
+    cout << "All children (possible states) are :" << endl << endl;
     for (int i = 0; i < childrenNumber; i++ ){
         printArray(children[i]);
         cout << endl;
@@ -250,8 +250,16 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
         }
     }
 
+    // If the person was in a storage location then moved from it we should keep the storage location unchanged
+    for (int i = 0; i < storageLocations.size(); i++){
+        int x = storageLocations[i][0] - '0';
+        int y = storageLocations[i][1] - '0';
 
-
+        for (int childIndex = 0; childIndex < index; childIndex++) {
+            if (children[childIndex][x][y] == emptySpace)
+                children[childIndex][x][y] = storageLocation;
+        } 
+    }
 }
 
 void addChild(int children[][rows][columns], int child[rows][columns], int& index) {
