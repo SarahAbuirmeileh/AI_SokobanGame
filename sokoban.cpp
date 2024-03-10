@@ -7,6 +7,7 @@ const  int rows = 7, columns = 5;
 
 // The header for all functions
 void Init(int initialState [rows][columns]);
+void printArray(int array[rows][columns]);
 
 int main(){
 
@@ -20,6 +21,7 @@ int main(){
 
     int initialState [rows][columns];
     Init(initialState);
+    printArray(initialState);
 
     return 0;
 }
@@ -42,5 +44,15 @@ void Init(int initialState [rows][columns]){
                 initialState[i][j] = 0;
             }
         }
+    }
+}
+
+void printArray(int array[rows][columns]){
+
+    for (int i = 0; i < rows; i++){
+        for (int j = 0; j < columns; j++){
+            cout <<  array[i][j] << " ";
+        }
+        cout << endl;
     }
 }
