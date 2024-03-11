@@ -1,3 +1,7 @@
+// Team Members 👩🏻‍💻👩🏻‍💻
+// - Sarah Abu irmeileh
+// - Asia Shalaldah  
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
