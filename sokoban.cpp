@@ -14,6 +14,7 @@ int box = 2;
 int storageLocation = 3;
 int boxInStorage = 4;
 int person = 5;
+int personInStorage = 6;
 
 // The header for all functions
 void Init(int initialState [rows][columns]);
@@ -101,33 +102,41 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
     // To add to the children array 
     index = 0;
 
-    /* Store the index for the  storage locations to make sure that when the person move to a storage location 
-       then left it we won't lose the storage location from the state */
 
-    /* Each location is represented as string from 2 char, the first one is the x-index and the second is y-index
+    // The commited code represents other way to solve the issue when move a person to a storage location
+
+    /* Store the index for the  storage locations to make sure that when the person move to a storage location 
+       then left it we won't lose the storage location from the state  
+
+       Each location is represented as string from 2 char, the first one is the x-index and the second is y-index
        example: "24" means the location in the array (2,4)*/
-    vector<string>storageLocations;
-    for (int i = 0; i < rows; i++){
-        for (int j = 0; j < columns; j++){
-            if (state[i][j] == storageLocation){
-                storageLocations.push_back(""+i+j);
-            }
-        }
-    }
+
+    // vector<string>storageLocations;
+    // for (int i = 0; i < rows; i++){
+    //     for (int j = 0; j < columns; j++){
+    //         if (state[i][j] == storageLocation){
+    //             storageLocations.push_back(""+i+j);
+    //         }
+    //     }
+    // }
 
     int child [rows][columns];
 
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < columns; j++){
-            if (state[i][j] == person){
+            if (state[i][j] == person || state[i][j] == personInStorage){
                 // Top
                 // if top is empty or storage location 
                 if (state[i - 1][j] == emptySpace || state[i - 1][j] == storageLocation){
                     
                     copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                    child[i][j] = emptySpace;
-                    child[i - 1][j] = person;
+                    // If the the current person is setting on a storage location, when moving him keep the storage location       
+                    child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
+
+                    /* If the place which we want to move to is storage location save it as personInStorage if it's empty 
+                       store it as person */
+                    child[i - 1][j] = child[i - 1][j] == emptySpace ? person : personInStorage;
                     addChild(children, child, index);
 
                 }else if (state[i - 1][j] == box || state[i - 1][j] == boxInStorage ) {
@@ -159,8 +168,8 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
                     copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                    child[i][j] = emptySpace;
-                    child[i][j - 1] = person;
+                    child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
+                    child[i][j - 1] = child[i][j - 1] == emptySpace ? person : personInStorage;
                     addChild(children, child, index);
                 }else if (state[i][j - 1] == box || state[i][j - 1] == boxInStorage){
                     // if left is a box or box in a storage location
@@ -190,8 +199,8 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
                     copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                    child[i][j] = emptySpace;
-                    child[i][j + 1] = person;
+                    child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
+                    child[i][j + 1] = child[i][j + 1]  == emptySpace ? person : personInStorage;
                     addChild(children, child, index);
 
                 } else if (state[i][j + 1] == box || state[i][j + 1] == boxInStorage){
@@ -222,9 +231,10 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                     
                     copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                    child[i][j] = emptySpace;
-                    child[i + 1][j] = person;
+                    child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
+                    child[i + 1][j] = child[i + 1][j]  == emptySpace ? person : personInStorage;
                     addChild(children, child, index);
+
                 }else if (state[i + 1][j] == box || state[i + 1][j] == boxInStorage){
                     // if bottom is a box or box in a storage location
                     // if the place at the bottom of the box is empty, it will be 2
@@ -251,15 +261,15 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
     }
 
     // If the person was in a storage location then moved from it we should keep the storage location unchanged
-    for (int i = 0; i < storageLocations.size(); i++){
-        int x = storageLocations[i][0] - '0';
-        int y = storageLocations[i][1] - '0';
+    // for (int i = 0; i < storageLocations.size(); i++){
+    //     int x = storageLocations[i][0] - '0';
+    //     int y = storageLocations[i][1] - '0';
 
-        for (int childIndex = 0; childIndex < index; childIndex++) {
-            if (children[childIndex][x][y] == emptySpace)
-                children[childIndex][x][y] = storageLocation;
-        } 
-    }
+    //     for (int childIndex = 0; childIndex < index; childIndex++) {
+    //         if (children[childIndex][x][y] == emptySpace)
+    //             children[childIndex][x][y] = storageLocation;
+    //     } 
+    // }
 }
 
 void addChild(int children[][rows][columns], int child[rows][columns], int& index) {
