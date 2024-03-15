@@ -26,6 +26,7 @@ void printArray(int array[rows][columns]);
 bool IsGoal(int state [rows][columns]);
 void GenerateChildren(int state[rows][columns], int children [4][rows][columns], int &index);
 void addChild(int children[4][rows][columns], int child[rows][columns], int& index);
+bool isDeadLock(int[][] state);
 
 int main(){
 
@@ -278,4 +279,34 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
 void addChild(int children[][rows][columns], int child[rows][columns], int& index) {
     copy(&child[0][0], &child[0][0] + rows * columns, &children[index++][0][0]);
+}
+
+bool isDeadLock(int[][] state){
+    for(int i = 0; i < state.Length; i++){
+        for( int j = 0; j < state[i].Length; j++){
+            // if the square is a box
+            if (state[i][j] == box){
+                // if the top and right of the box aren't empty
+                if ((state[i - 1][j] == wall || state[i - 1][j] == box || state[i - 1][j] == boxInStorage  ) 
+                    && (state[i][j + 1] == wall || state[i][j + 1] == box || state[i][j + 1] == boxInStorage))
+                    return true;
+
+                // if the top and left of the box aren't empty
+                if ((state[i - 1][j] == wall || state[i - 1][j] == box  || state[i - 1][j] == boxInStorage) 
+                    && (state[i][j - 1] == wall || state[i][j - 1] == box || state[i][j - 1] == boxInStorage))
+                    return true;
+
+                // if the bottom and right of the box aren't empty
+                if ((state[i + 1][j] == wall || state[i + 1][j] == box || state[i + 1][j] == boxInStorage) 
+                     && (state[i][j + 1] == wall || state[i][j + 1] == box || state[i][j + 1] == boxInStorage) )
+                    return true;
+
+                // if the bottom and left of the box aren't empty
+                if ((state[i + 1][j] == wall || state[i + 1][j] == box || state[i + 1][j] == boxInStorage) 
+                   && (state[i][j - 1] == wall || state[i][j - 1] == box || state[i][j - 1] == boxInStorage))
+                    return true;
+            }
+        }
+    }
+    return false;
 }
