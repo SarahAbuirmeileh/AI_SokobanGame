@@ -6,7 +6,7 @@ Enjoy the challenge!🚀
 
 Here is our start state
 
-![image](https://github.com/SarahAbuirmeileh/AI_SokobanGame/assets/127017088/53a7fa1a-b88c-4f97-b0ae-a52b2dfbed6f)
+![image](https://github.com/SarahAbuirmeileh/SarahAbuirmeileh/assets/127017088/a3d4fb46-5cc5-4ce8-bc33-8b331eec4372)
 
 
 
