@@ -1,0 +1,35 @@
+// Team Members 👩🏻‍💻👩🏻‍💻
+// - Sarah Abu irmeileh
+// - Asia Shalaldah  
+
+Set Y to 0.8
+Set number of episodes to 1000
+
+initialize Q-table with -1's 
+// The valid actions will be changed after getting the reward, other wise there is no possible action so it should remain -1
+// We suppose that -1 means no possible action
+
+For each episode
+    Select the initial state (S) and give it number (0) and store it in the vector
+    i=0
+    Do while goal not reached and not deadlock and i < 100000
+        Generate all children for (S)
+        Select  one child randomly (X) 
+        If (X) is not exists in the vector add it to the end of the vector and get it's number (index)
+        Otherwise get it's number (index) from the vector
+        Consider going to the next state N(S,X)
+        Get the reward value for state(S) after applying (X) action by calling R(S,X) function
+        Get maximum Q for N(S,X) based on all possible actions
+        Edit the Q-matrix (row S , column X) as this equation
+        Q(S,X)= R(S,X)+ Y.Max[Q(n(S,X)),all actions]
+        Set S = N(S,X)
+        i++
+    End Do 
+End for
+
+R(S,X)
+    apply (S,X)
+    S = S after applying X action
+    if isGoal(S)
+        return 1000
+    return 0

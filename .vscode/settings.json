@@ -6,5 +6,8 @@
         "string": "cpp",
         "vector": "cpp",
         "ostream": "cpp"
-    }
+    },
+    "cSpell.words": [
+        "Sokoban"
+    ]
 }

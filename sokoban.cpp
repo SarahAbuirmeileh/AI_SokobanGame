@@ -106,6 +106,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
     // To add to the children array 
     index = 0;
+    // TODO: Give fixed index for each location (ACTION) for the child
 
 
     // The commited code represents other way to solve the issue when move a person to a storage location
