@@ -9,7 +9,7 @@
 using namespace std;
 
 // The dimension of our array, if you want to edit it you edit it just here, not in the entire code.
-const  int rows = 7, columns = 5;
+const  int rows = 7, columns = 7;
 
 // Constants representing the game elements
 int emptySpace = 0;
@@ -26,12 +26,21 @@ void printArray(int array[rows][columns]);
 bool IsGoal(int state [rows][columns]);
 void GenerateChildren(int state[rows][columns], int children [4][rows][columns], int &index);
 void addChild(int children[4][rows][columns], int child[rows][columns], int& index);
-bool isDeadLock(int[][] state);
+bool isDeadLock(int state[rows][columns] );
 
 int main(){
 
     int initialState [rows][columns];
     Init(initialState);
+
+    int x, y;
+
+    printArray(initialState);
+    cout << endl;
+    cout << "Enter The Person's Position: (x,y)" << endl;
+
+    cin >> x >> y;
+    initialState[x][y] = 5;
 
     cout << "The initial game is :" << endl << endl;
     printArray(initialState);
@@ -57,8 +66,6 @@ void Init(int initialState [rows][columns]){
         for (int j = 0; j < columns; j++){
             if (i == 0 || j == 0 || (i == rows - 1) || (j == columns - 1) || ( (i == 3) &&  (j == 1 || j == 2 )) ){
                 initialState[i][j] = wall;
-            }else if (i == 1 && j == 1){
-                initialState[i][j] = person;
             }else if (  j == 2 && (i == 4 || i == 2)){
                 initialState[i][j] = box;
             }else if ((i == 4 && j == 1) || (i == 5 && j == 3)){
@@ -282,10 +289,10 @@ void addChild(int children[][rows][columns], int child[rows][columns], int& inde
     copy(&child[0][0], &child[0][0] + rows * columns, &children[index++][0][0]);
 }
 
-bool isDeadLock(int[][] state){
+bool isDeadLock(int state[rows][columns]){
     
-    for(int i = 0; i < state.Length; i++){
-        for( int j = 0; j < state[i].Length; j++){
+    for(int i = 0; i < rows; i++){
+        for( int j = 0; j < columns; j++){
             // if the square is a box
             if (state[i][j] == box){
                 // if the top and right of the box are wall
