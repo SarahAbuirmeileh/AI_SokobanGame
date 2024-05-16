@@ -1,5 +1,8 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <array>
+#include <algorithm> 
 
 using namespace std;
 
@@ -8,6 +11,8 @@ const int columns = 7;
 
 int episode = 1000; // The # of trials for computer to learn, usually the # is big
 double y = 0.8; // Constant for learning rate
+
+using Array2D = array<array<int, columns>, rows>;
 
 
 // The headers for all functions
@@ -22,6 +27,8 @@ int main(){
 
     // The rows represents the states and the columns represents the actions
     int QTable[rows][columns];
+
+    vector<Array2D> states;
 
     // We want to reach F. Hence, F-> is the goal
     // We can add 'A' to each row & column to make the result more familiar to the table in the Readme file
@@ -157,5 +164,26 @@ void initializeQTable(int QTable[rows][columns])
         {
             QTable[i][j] = -1;
         }
+    }
+}
+
+// Function to find the index of a matrix in the vector
+int findMatrixIndex(const vector<Array2D>& matrixVec, const Matrix3x3& matrix) {
+    auto it = find(matrixVec.begin(), matrixVec.end(), matrix);
+    if (it != matrixVec.end()) {
+        return distance(matrixVec.begin(), it);
+    } else {
+        return -1; 
+    }
+}
+
+// Function to insert a matrix into the vector and return its index
+int insertMatrix(vector<Array2D>& matrixVec, const Array2D& matrix) {
+    int index = findMatrixIndex(matrixVec, matrix);
+    if (index == -1) {
+        matrixVec.push_back(matrix);
+        return matrixVec.size() - 1; // Index of the inserted matrix
+    } else {
+        return index; // Matrix already exists in the vector
     }
 }
