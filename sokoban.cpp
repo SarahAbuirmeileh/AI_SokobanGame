@@ -5,6 +5,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <vector>
+#include <array>
 
 using namespace std;
 
@@ -20,6 +23,12 @@ int boxInStorage = 4;
 int person = 5;
 int personInStorage = 6;
 
+// Constants representing the Q-learning ALG
+const int episode = 1000; // The # of trials for computer to learn, usually the # is big
+const double y = 0.8; // Constant for learning rate
+using Array2D = array<array<int, columns>, rows>;
+
+
 // The header for all functions
 void Init(int initialState [rows][columns]);
 void printArray(int array[rows][columns]);
@@ -27,6 +36,12 @@ bool IsGoal(int state [rows][columns]);
 void GenerateChildren(int state[rows][columns], int children [4][rows][columns], int &index);
 void addChild(int children[4][rows][columns], int child[rows][columns], int& index);
 bool isDeadLock(int state[rows][columns] );
+
+// The headers for all functions for Q-learning ALG
+int getRandomPossibleAction(int state, int Reward[rows][columns]);
+void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][columns], double y, int episodes);
+int getReward(int state[rows][columns]);
+void initializeQTable(int QTable[rows][columns]);
 
 int main(){
 
@@ -314,4 +329,102 @@ bool isDeadLock(int state[rows][columns]){
         }
     }
     return false;
+}
+
+void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][columns], double y, int episodes){
+
+    int state[rows][columns] = initialState;
+    // Loop for all episodes
+    while (episodes--){
+
+        // Do while the goal is not reached, in this case while the state != 5
+        while (true){
+
+            // Select one random action from this state call it x, this action should be possible
+            int x = getRandomPossibleAction(state, Reward);
+
+            // Get the maximum Q from the x row using QTable
+            int maximumQ = -1;
+            for (int i = 0; i < columns; i++)
+            {
+                maximumQ = max(maximumQ, QTable[x][i]);
+            }
+
+            // Update the QTable according to this equation
+            QTable[state][x] = Reward[state][x] + y * maximumQ;
+
+            // Update the state to be the next state which has been chosen randomly
+            state = x;
+            if (x == 5)
+            {
+                break;
+                ;
+            }
+        }
+    }
+}
+
+int getRandomPossibleAction(int state, int Reward[rows][columns])
+{
+
+    // Select random action, this action should be possible
+    while (true)
+    {
+
+        int randomAction = rand() % columns;
+
+        // If it's possible action break
+        if (Reward[state][randomAction] != -1)
+        {
+            return randomAction;
+        }
+    }
+}
+
+int getReward(int state[rows][columns])
+{
+    int reword = 0;
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            if (state[i][j] == 4)
+            {
+                reword++;
+            }
+        }
+    }
+    return reword;
+}
+
+void initializeQTable(int QTable[rows][columns])
+{
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = 0; j < columns; ++j)
+        {
+            QTable[i][j] = -1;
+        }
+    }
+}
+
+// Function to find the index of a matrix in the vector
+int findMatrixIndex(const vector<Array2D>& matrixVec, const Matrix3x3& matrix) {
+    auto it = find(matrixVec.begin(), matrixVec.end(), matrix);
+    if (it != matrixVec.end()) {
+        return distance(matrixVec.begin(), it);
+    } else {
+        return -1; 
+    }
+}
+
+// Function to insert a matrix into the vector and return its index
+int insertMatrix(vector<Array2D>& matrixVec, const Array2D& matrix) {
+    int index = findMatrixIndex(matrixVec, matrix);
+    if (index == -1) {
+        matrixVec.push_back(matrix);
+        return matrixVec.size() - 1; // Index of the inserted matrix
+    } else {
+        return index; // Matrix already exists in the vector
+    }
 }
