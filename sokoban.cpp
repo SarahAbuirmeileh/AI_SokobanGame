@@ -117,6 +117,9 @@ bool IsGoal(int state [rows][columns]){
 // Function to generate all the children or all valid state from the given one
 void GenerateChildren(int state[rows][columns], int children [4][rows][columns], int &index) {
 
+    // If the the valid action (child) is top we will store it in the children array in index 0, if left it will be stored in index 1, if right
+    // it will be stored in 2 and if bottom in index 3
+
     // left, right, top, down
     // 0 = go to fill the empty space, replace 5 with 0 and 0 with 5 
     // 1 = do nothing
@@ -165,7 +168,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                     /* If the place which we want to move to is storage location save it as personInStorage if it's empty 
                        store it as person */
                     child[i - 1][j] = child[i - 1][j] == emptySpace ? person : personInStorage;
-                    addChild(children, child, index);
+                    addChild(children, child, 0);
 
                 }else if (state[i - 1][j] == box || state[i - 1][j] == boxInStorage ) {
                     // if top is a box or box in a storage location
@@ -177,7 +180,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i - 1][j] = person;
                         child[i - 2][j] = box;
-                        addChild(children, child, index);
+                        addChild(children, child, 0);
 
                     }else if (state[i - 2][j] == storageLocation){
                         // if the place at the top of the box is a storage location, it will be 4 
@@ -187,7 +190,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i - 1][j] = person;
                         child[i - 2][j] = boxInStorage;
-                        addChild(children, child, index);
+                        addChild(children, child, 0);
                     }
                 }
                 // Left
@@ -198,7 +201,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
                     child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
                     child[i][j - 1] = child[i][j - 1] == emptySpace ? person : personInStorage;
-                    addChild(children, child, index);
+                    addChild(children, child, 1);
                 }else if (state[i][j - 1] == box || state[i][j - 1] == boxInStorage){
                     // if left is a box or box in a storage location
                     // if the place at the left of the box is empty, it will be 2
@@ -209,7 +212,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i][j - 1] = person;
                         child[i][j - 2] = box;
-                        addChild(children, child, index);
+                        addChild(children, child, 1);
 
                     }else if (state[i - 2][j] == boxInStorage){
                         // if the place at the left of the box is a storage location, it will be 4 
@@ -218,7 +221,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i][j - 1] = person;
                         child[i][j - 2] = boxInStorage;
-                        addChild(children, child, index);
+                        addChild(children, child, 1);
                     }
                 }
                 // Right
@@ -229,7 +232,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
                     child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
                     child[i][j + 1] = child[i][j + 1]  == emptySpace ? person : personInStorage;
-                    addChild(children, child, index);
+                    addChild(children, child, 2);
 
                 } else if (state[i][j + 1] == box || state[i][j + 1] == boxInStorage){
                     // if right is a box or box in a storage location
@@ -241,7 +244,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i][j + 1] = person;
                         child[i][j + 2] = box;
-                        addChild(children, child, index);
+                        addChild(children, child, 2);
 
                     }else if (state[i][j + 2] == 3){
                         // if the place at the left of the box is a storage location, it will be 4 
@@ -250,7 +253,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i][j + 1] = person;
                         child[i][j + 2] = boxInStorage;
-                        addChild(children, child, index);
+                        addChild(children, child, 2);
                     }
                 }
                 // Bottom
@@ -261,7 +264,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
 
                     child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
                     child[i + 1][j] = child[i + 1][j]  == emptySpace ? person : personInStorage;
-                    addChild(children, child, index);
+                    addChild(children, child, 3);
 
                 }else if (state[i + 1][j] == box || state[i + 1][j] == boxInStorage){
                     // if bottom is a box or box in a storage location
@@ -273,7 +276,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i + 1][j] = person;
                         child[i + 2][j] = box;
-                        addChild(children, child, index);
+                        addChild(children, child, 3);
                     }else if (state[i + 2][j] == boxInStorage){
                         // if the place at the bottom of the box is a storage location, it will be 4 
                         copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
@@ -281,7 +284,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns],
                         child[i][j] = emptySpace;
                         child[i + 1][j] = person;
                         child[i + 1][j] = boxInStorage;
-                        addChild(children, child, index);
+                        addChild(children, child, 3);
                     }
                 }
             }
@@ -333,9 +336,13 @@ bool isDeadLock(int state[rows][columns]){
 
 void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][columns], double y, int episodes){
 
+    vector<Array2D> states;
+    states.push_back(initialState);
+    int i=0;
+
     int state[rows][columns] = initialState;
     // Loop for all episodes
-    while (episodes--){
+    while (!IsGoal(state) && !isDeadLock(state) && i<100000){
 
         // Do while the goal is not reached, in this case while the state != 5
         while (true){
@@ -361,9 +368,11 @@ void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][column
                 ;
             }
         }
+        i++;
     }
 }
 
+// TODO:
 int getRandomPossibleAction(int state, int Reward[rows][columns])
 {
 
@@ -381,15 +390,11 @@ int getRandomPossibleAction(int state, int Reward[rows][columns])
     }
 }
 
-int getReward(int state[rows][columns])
-{
+int getReward(int state[rows][columns]){
     int reword = 0;
-    for (int i = 0; i < rows; i++)
-    {
-        for (int j = 0; j < columns; j++)
-        {
-            if (state[i][j] == 4)
-            {
+    for (int i = 0; i < rows; i++){
+        for (int j = 0; j < columns; j++) {
+            if (state[i][j] == 4) {
                 reword++;
             }
         }
@@ -397,12 +402,9 @@ int getReward(int state[rows][columns])
     return reword;
 }
 
-void initializeQTable(int QTable[rows][columns])
-{
-    for (int i = 0; i < rows; ++i)
-    {
-        for (int j = 0; j < columns; ++j)
-        {
+void initializeQTable(int QTable[rows][columns]){
+    for (int i = 0; i < rows; ++i){
+        for (int j = 0; j < columns; ++j){
             QTable[i][j] = -1;
         }
     }
