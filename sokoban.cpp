@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <array>
+#include <set>
 
 using namespace std;
 
@@ -33,12 +34,12 @@ using Array2D = array<array<int, columns>, rows>;
 void Init(int initialState [rows][columns]);
 void printArray(int array[rows][columns]);
 bool IsGoal(int state [rows][columns]);
-void GenerateChildren(int state[rows][columns], int children [4][rows][columns], int &index);
+void GenerateChildren(int state[rows][columns], int children [4][rows][columns]);
 void addChild(int children[4][rows][columns], int child[rows][columns], int& index);
 bool isDeadLock(int state[rows][columns] );
 
 // The headers for all functions for Q-learning ALG
-int getRandomPossibleAction(int state, int Reward[rows][columns]);
+int getRandomPossibleAction(int state);
 void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][columns], double y, int episodes);
 int getReward(int state[rows][columns]);
 void initializeQTable(int QTable[rows][columns]);
@@ -61,11 +62,11 @@ int main(){
     printArray(initialState);
     cout << endl << endl;
 
-    int children [4][rows][columns], childrenNumber;
-    GenerateChildren(initialState,children, childrenNumber );
+    int children [4][rows][columns];
+    GenerateChildren(initialState,children );
 
     cout << "All children (possible states) are :" << endl << endl;
-    for (int i = 0; i < childrenNumber; i++ ){
+    for (int i = 0; i < 4; i++ ){
         printArray(children[i]);
         cout << endl;
     }
@@ -115,7 +116,7 @@ bool IsGoal(int state [rows][columns]){
 }
 
 // Function to generate all the children or all valid state from the given one
-void GenerateChildren(int state[rows][columns], int children [4][rows][columns], int &index) {
+void GenerateChildren(int state[rows][columns], int children [4][rows][columns]) {
 
     // If the the valid action (child) is top we will store it in the children array in index 0, if left it will be stored in index 1, if right
     // it will be stored in 2 and if bottom in index 3
@@ -341,53 +342,75 @@ void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][column
     int i=0;
 
     int state[rows][columns] = initialState;
-    // Loop for all episodes
-    while (!IsGoal(state) && !isDeadLock(state) && i<100000){
 
-        // Do while the goal is not reached, in this case while the state != 5
-        while (true){
+    int stateId;
+    int reward;
+    int nextState[rows][columns] ;
+    // Loop for all episodes
+    while (--episodes){
+
+        // Do while the goal is not reached and not deadlock and i < 100000, in this case while the state != 5
+        while (!IsGoal(state) && !isDeadLock(state) && i<100000){
+
+            int children [4][rows][columns];
+            GenerateChildren(state, children);
 
             // Select one random action from this state call it x, this action should be possible
-            int x = getRandomPossibleAction(state, Reward);
+            int x = getRandomPossibleAction(state); // x from 0-3
+
+            // Since the deadlock fun doesn't handle all deadlocked states
+            if (x == -1){
+                cout << "There is no valid action from this state" << endl;
+                return;
+            }
+
+            stateId = insertMatrix(states, state);
+
+            // Consider going to the next state N(S,X) 
+            // We get that from children[x]
+            nextState = children[x];
+
+            reward = getReward(nextState);
 
             // Get the maximum Q from the x row using QTable
             int maximumQ = -1;
-            for (int i = 0; i < columns; i++)
-            {
+            for (int i = 0; i < 4; i++){
                 maximumQ = max(maximumQ, QTable[x][i]);
             }
 
             // Update the QTable according to this equation
-            QTable[state][x] = Reward[state][x] + y * maximumQ;
+            QTable[stateId][x] = reward + y * maximumQ;
 
             // Update the state to be the next state which has been chosen randomly
-            state = x;
+            state = nextState;
             if (x == 5)
-            {
-                break;
-                ;
-            }
+
+            i++;
         }
-        i++;
     }
 }
 
-// TODO:
-int getRandomPossibleAction(int state, int Reward[rows][columns])
-{
+int getRandomPossibleAction(int children [4][rows][columns]){
 
     // Select random action, this action should be possible
-    while (true)
-    {
+    set <int> uniqueChild;
+    while (uniqueChild.size != 4) {
 
-        int randomAction = rand() % columns;
+        int randomAction = rand() % 4;
 
-        // If it's possible action break
-        if (Reward[state][randomAction] != -1)
-        {
-            return randomAction;
+        // If the child array not zero array it's a valid child
+        for (int i=0; i<rows; i++){
+            for (int j=0; j<columns; j++){
+                if (children[randomAction][i][j]!=0){
+                    return randomAction;
+                }
+            }
         }
+
+        uniqueChild.insert(randomAction);
+
     }
+    return -1;
 }
 
 int getReward(int state[rows][columns]){
