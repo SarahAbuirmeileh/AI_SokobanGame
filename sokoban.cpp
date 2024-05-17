@@ -40,9 +40,8 @@ bool isDeadLock(int state[rows][columns] );
 
 // The headers for all functions for Q-learning ALG
 int getRandomPossibleAction(int state);
-void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][columns], double y, int episodes);
+void QLearningAlgorithm(int initialState[rows][columns], vector<array<int, 4>> &QTable, double y, int episodes);
 int getReward(int state[rows][columns]);
-void initializeQTable(int QTable[rows][columns]);
 
 int main(){
 
@@ -132,8 +131,6 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
 
     // To add to the children array 
     index = 0;
-    // TODO: Give fixed index for each location (ACTION) for the child
-
 
     // The commited code represents other way to solve the issue when move a person to a storage location
 
@@ -335,10 +332,11 @@ bool isDeadLock(int state[rows][columns]){
     return false;
 }
 
-void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][columns], double y, int episodes){
+void QLearningAlgorithm(int initialState[rows][columns], vector<array<int, 4>> &QTable, double y, int episodes){
 
     vector<Array2D> states;
     states.push_back(initialState);
+    QTable.push_back({-1,-1,-1,-1});
     int i=0;
 
     int state[rows][columns] = initialState;
@@ -365,6 +363,12 @@ void QLearningAlgorithm(int initialState[rows][columns], int QTable[rows][column
             }
 
             stateId = insertMatrix(states, state);
+
+            // If the state is new it will be added as the last element in the states vector, hence we should add new row 
+            // in the QTable to represent this state 
+            if ( stateId == QTable.size()){
+                QTable.push_back({-1,-1,-1,-1});
+            }
 
             // Consider going to the next state N(S,X) 
             // We get that from children[x]
@@ -423,14 +427,6 @@ int getReward(int state[rows][columns]){
         }
     }
     return reword;
-}
-
-void initializeQTable(int QTable[rows][columns]){
-    for (int i = 0; i < rows; ++i){
-        for (int j = 0; j < columns; ++j){
-            QTable[i][j] = -1;
-        }
-    }
 }
 
 // Function to find the index of a matrix in the vector
