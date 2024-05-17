@@ -31,21 +31,24 @@ using Array2D = array<array<int, columns>, rows>;
 
 
 // The header for all functions
-void Init(int initialState [rows][columns]);
-void printArray(int array[rows][columns]);
-bool IsGoal(int state [rows][columns]);
-void GenerateChildren(int state[rows][columns], int children [4][rows][columns]);
-void addChild(int children[4][rows][columns], int child[rows][columns], int& index);
-bool isDeadLock(int state[rows][columns] );
+void Init( Array2D &initialState );
+void printArray( Array2D initialState);
+bool IsGoal( Array2D state);
+void GenerateChildren( Array2D state, int children [4][rows][columns]);
+void addChild(int children[4][rows][columns],  Array2D child, int index);
+bool isDeadLock( Array2D state );
 
 // The headers for all functions for Q-learning ALG
-int getRandomPossibleAction(int state);
-void QLearningAlgorithm(int initialState[rows][columns], vector<array<int, 4>> &QTable, double y, int episodes);
-int getReward(int state[rows][columns]);
+int getRandomPossibleAction(int children [4][rows][columns]);
+void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, double y, int episodes);
+int getReward( Array2D state);
+int insertMatrix(vector<Array2D>& matrixVec,  Array2D& matrix);
+int findMatrixIndex( vector<Array2D>& matrixVec,  Array2D& matrix);
+void insertIntoQTable(vector<array<int, 4>> &QTable, int children [4][rows][columns]);
 
 int main(){
 
-    int initialState [rows][columns];
+    Array2D initialState;
     Init(initialState);
 
     int x, y;
@@ -61,20 +64,14 @@ int main(){
     printArray(initialState);
     cout << endl << endl;
 
-    int children [4][rows][columns];
-    GenerateChildren(initialState,children );
-
-    cout << "All children (possible states) are :" << endl << endl;
-    for (int i = 0; i < 4; i++ ){
-        printArray(children[i]);
-        cout << endl;
-    }
+    vector<array<int, 4>> QTable;
+    QLearningAlgorithm(initialState, QTable, y, episode);
 
     return 0;
 }
 
 // Function to initialize the game
-void Init(int initialState [rows][columns]){
+void Init( Array2D &initialState){
     // The array is sent by reference by default , so we sent the array to this function and it'll be edited as needed
     
     for (int i = 0; i < rows; i++){
@@ -93,7 +90,7 @@ void Init(int initialState [rows][columns]){
 }
 
 // Function to print 2D array
-void printArray(int array[rows][columns]){
+void printArray( Array2D array){
 
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < columns; j++){
@@ -104,7 +101,7 @@ void printArray(int array[rows][columns]){
 }
 
 // Function to determine weather the state is a goal state or not
-bool IsGoal(int state [rows][columns]){
+bool IsGoal( Array2D state){
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < columns; j++){
             if (state[i][j] == box)
@@ -115,7 +112,7 @@ bool IsGoal(int state [rows][columns]){
 }
 
 // Function to generate all the children or all valid state from the given one
-void GenerateChildren(int state[rows][columns], int children [4][rows][columns]) {
+void  GenerateChildren( Array2D state, int children [4][rows][columns]) {
 
     // If the the valid action (child) is top we will store it in the children array in index 0, if left it will be stored in index 1, if right
     // it will be stored in 2 and if bottom in index 3
@@ -130,7 +127,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
     // We can say that children is array of 4 elements, each element is a 2d array represent the state
 
     // To add to the children array 
-    index = 0;
+    int index;
 
     // The commited code represents other way to solve the issue when move a person to a storage location
 
@@ -149,7 +146,7 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
     //     }
     // }
 
-    int child [rows][columns];
+    Array2D child;
 
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < columns; j++){
@@ -190,6 +187,13 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
                         child[i - 2][j] = boxInStorage;
                         addChild(children, child, 0);
                     }
+                }else{
+                    for(int i=0; i<rows; i++){
+                        for (int j=0; j<rows; j++){
+                            child[i][j]=0;
+                        }
+                    }
+                    addChild(children, child, 0);
                 }
                 // Left
                 // if left is empty or storage location 
@@ -221,6 +225,13 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
                         child[i][j - 2] = boxInStorage;
                         addChild(children, child, 1);
                     }
+                }else{
+                    for(int i=0; i<rows; i++){
+                        for (int j=0; j<rows; j++){
+                            child[i][j]=0;
+                        }
+                    }
+                    addChild(children, child, 1);
                 }
                 // Right
                 // if right is empty or storage location 
@@ -253,7 +264,14 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
                         child[i][j + 2] = boxInStorage;
                         addChild(children, child, 2);
                     }
-                }
+                } else{
+                    for(int i=0; i<rows; i++){
+                        for (int j=0; j<rows; j++){
+                            child[i][j]=0;
+                        }
+                    }
+                    addChild(children, child, 2);
+                } 
                 // Bottom
                 // if bottom is empty or storage location
                 if (state[i + 1][j] == emptySpace || state[i + 1][j] == storageLocation){
@@ -284,6 +302,13 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
                         child[i + 1][j] = boxInStorage;
                         addChild(children, child, 3);
                     }
+                }else{
+                    for(int i=0; i<rows; i++){
+                        for (int j=0; j<rows; j++){
+                            child[i][j]=0;
+                        }
+                    }
+                    addChild(children, child, 3);
                 }
             }
         }
@@ -301,11 +326,11 @@ void GenerateChildren(int state[rows][columns], int children [4][rows][columns])
     // }
 }
 
-void addChild(int children[][rows][columns], int child[rows][columns], int& index) {
-    copy(&child[0][0], &child[0][0] + rows * columns, &children[index++][0][0]);
+void addChild(int children[][rows][columns],  Array2D child, int index) {
+    copy(&child[0][0], &child[0][0] + rows * columns, &children[index][0][0]);
 }
 
-bool isDeadLock(int state[rows][columns]){
+bool isDeadLock( Array2D state){
     
     for(int i = 0; i < rows; i++){
         for( int j = 0; j < columns; j++){
@@ -332,80 +357,195 @@ bool isDeadLock(int state[rows][columns]){
     return false;
 }
 
-void QLearningAlgorithm(int initialState[rows][columns], vector<array<int, 4>> &QTable, double y, int episodes){
-
+void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, double y, int episodes){
+    
     vector<Array2D> states;
-    states.push_back(initialState);
-    QTable.push_back({-1,-1,-1,-1});
+    insertMatrix(states, initialState);
+    
     int i=0;
 
-    int state[rows][columns] = initialState;
+    Array2D state = initialState;
+    int initChildren [4][rows][columns];
 
-    int stateId;
+    GenerateChildren(state, initChildren);
+    insertIntoQTable(QTable, initChildren);
+
+    int stateId, nextStateId;
     int reward;
-    int nextState[rows][columns] ;
+    Array2D nextState;
+
+    int c = 0;
+
     // Loop for all episodes
-    while (--episodes){
+    while (episodes--){
 
         // Do while the goal is not reached and not deadlock and i < 100000, in this case while the state != 5
-        while (!IsGoal(state) && !isDeadLock(state) && i<100000){
+        while (!IsGoal(state) && !isDeadLock(state) && i<1000){
 
             int children [4][rows][columns];
             GenerateChildren(state, children);
 
             // Select one random action from this state call it x, this action should be possible
-            int x = getRandomPossibleAction(state); // x from 0-3
-
+            int x = getRandomPossibleAction(children); // x from 0-3
+            
             // Since the deadlock fun doesn't handle all deadlocked states
             if (x == -1){
                 cout << "There is no valid action from this state" << endl;
                 return;
             }
 
-            stateId = insertMatrix(states, state);
+            // stateId = insertMatrix(states, state);
+            
+
+            // nextState = children[x];
+            for (int i=0; i<rows; i++){
+                for (int j=0; j<columns; j++){
+                    nextState[i][j] = children[x][i][j];
+                }
+            }
+
+            nextStateId =  insertMatrix(states, nextState);
+            
+            GenerateChildren(nextState,children);
 
             // If the state is new it will be added as the last element in the states vector, hence we should add new row 
             // in the QTable to represent this state 
-            if ( stateId == QTable.size()){
-                QTable.push_back({-1,-1,-1,-1});
+
+            if ( nextStateId == QTable.size()){
+                insertIntoQTable(QTable, children);
             }
 
             // Consider going to the next state N(S,X) 
             // We get that from children[x]
-            nextState = children[x];
 
             reward = getReward(nextState);
 
             // Get the maximum Q from the x row using QTable
             int maximumQ = -1;
             for (int i = 0; i < 4; i++){
-                maximumQ = max(maximumQ, QTable[x][i]);
+                maximumQ = max(maximumQ, QTable[nextStateId][i]);
             }
 
             // Update the QTable according to this equation
             QTable[stateId][x] = reward + y * maximumQ;
+            if (c==1){
+                printArray(state);
+                return;
+            }
 
             // Update the state to be the next state which has been chosen randomly
             state = nextState;
-            if (x == 5)
 
             i++;
+            c++;
+
         }
     }
+
+    // To print the solution steps 
+
+    int currentStateIndex = 0; // initial State index
+    int maximumAction = -1;
+    int nextStateIndex = 0;
+
+    state = states[currentStateIndex];
+
+    int count  = 0;
+    // int childs [4][rows][columns];
+    int children [4][rows][columns];
+
+    // loop till you reach the goal state
+    while (!IsGoal(state)){
+        
+        // To get the maximum reword from all actions for the current state
+        for (int i = 0; i < 4; i++){
+            if (maximumAction < QTable[currentStateIndex][i]){
+                nextStateIndex = i;
+            }
+        }
+        GenerateChildren(state, children);
+
+        for (int i=0; i<rows; i++){
+            for (int j=0; j<columns; j++){
+                state[i][j]=children[nextStateIndex][i][j];
+            }
+        }
+
+        currentStateIndex = insertMatrix(states, state);
+        maximumAction = -1;
+        count++;
+
+        // printArray(state);
+
+        cout << endl << endl; 
+        if (count == 20){
+            printArray(state);
+            break;
+        }
+
+    }
+
+    // cout << endl;
+    // for (int i=0; i<4; i++){
+    //     cout << QTable[currentStateIndex][i] << " " ;
+    // }
+    // cout << endl;
+    // GenerateChildren(state, children);
+
+    
+    //  printArray(state);
+
+    //  cout << "!!!!!!!!!!!!!!!!!!!1" <<endl;
+
+    // for (int child=0; child<4; child++){
+    //     cout << "Child " << child << endl;
+    //     for (int i=0; i<rows; i++){
+    //         for (int j=0; j<columns; j++){
+    //             cout << children[child][i][j] << " ";
+    //         }   
+    //         cout << endl;
+    //     }
+    //     cout << endl << endl; 
+    // }
+
+    // cout << endl << endl << endl;
+
+    // for (int i=0; i<QTable.size(); i++){
+    //     for (int j=0; j<4; j++){
+    //         cout << QTable[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+}
+
+void insertIntoQTable(vector<array<int, 4>> &QTable, int children [4][rows][columns]){
+    array <int, 4>  QTableRow = {-1,-1,-1,-1};
+
+    for (int child=0; child<4; child++){
+        for (int i=0; i<rows; i++){
+            for (int j=0; j<columns; j++){
+                if (children[child][i][j]!= 0){ // valid action
+                    QTableRow[child] = 0;
+                }
+            }
+        }
+    }
+    QTable.push_back(QTableRow);
 }
 
 int getRandomPossibleAction(int children [4][rows][columns]){
 
     // Select random action, this action should be possible
     set <int> uniqueChild;
-    while (uniqueChild.size != 4) {
+    while (uniqueChild.size() < 4) {
 
         int randomAction = rand() % 4;
 
         // If the child array not zero array it's a valid child
         for (int i=0; i<rows; i++){
             for (int j=0; j<columns; j++){
-                if (children[randomAction][i][j]!=0){
+                if (children[randomAction][i][j] != 0){
                     return randomAction;
                 }
             }
@@ -417,7 +557,7 @@ int getRandomPossibleAction(int children [4][rows][columns]){
     return -1;
 }
 
-int getReward(int state[rows][columns]){
+int getReward( Array2D state){
     int reword = 0;
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < columns; j++) {
@@ -430,7 +570,7 @@ int getReward(int state[rows][columns]){
 }
 
 // Function to find the index of a matrix in the vector
-int findMatrixIndex(const vector<Array2D>& matrixVec, const Matrix3x3& matrix) {
+int findMatrixIndex( vector<Array2D>& matrixVec,  Array2D& matrix) {
     auto it = find(matrixVec.begin(), matrixVec.end(), matrix);
     if (it != matrixVec.end()) {
         return distance(matrixVec.begin(), it);
@@ -440,7 +580,7 @@ int findMatrixIndex(const vector<Array2D>& matrixVec, const Matrix3x3& matrix) {
 }
 
 // Function to insert a matrix into the vector and return its index
-int insertMatrix(vector<Array2D>& matrixVec, const Array2D& matrix) {
+int insertMatrix(vector<Array2D>& matrixVec,  Array2D& matrix) {
     int index = findMatrixIndex(matrixVec, matrix);
     if (index == -1) {
         matrixVec.push_back(matrix);
