@@ -25,9 +25,11 @@ int person = 5;
 int personInStorage = 6;
 
 // Constants representing the Q-learning ALG
-const int episode = 1000; // The # of trials for computer to learn, usually the # is big
+const int episode = 10000; // The # of trials for computer to learn, usually the # is big
 const double y = 0.8; // Constant for learning rate
 using Array2D = array<array<int, columns>, rows>;
+vector<Array2D> states;
+vector<array<int, 4>> QTable;
 
 
 // The header for all functions
@@ -42,8 +44,8 @@ bool isDeadLock( Array2D state );
 int getRandomPossibleAction(int children [4][rows][columns]);
 void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, double y, int episodes);
 int getReward( Array2D state);
-int insertMatrix(vector<Array2D>& matrixVec,  Array2D& matrix);
-int findMatrixIndex( vector<Array2D>& matrixVec,  Array2D& matrix);
+int insertMatrix(vector<Array2D>& matrixVec, const Array2D& matrix);
+int findMatrixIndex( vector<Array2D>& matrixVec, const Array2D& matrix);
 void insertIntoQTable(vector<array<int, 4>> &QTable, int children [4][rows][columns]);
 
 int main(){
@@ -51,21 +53,72 @@ int main(){
     Array2D initialState;
     Init(initialState);
 
+    QLearningAlgorithm(initialState, QTable, y, episode);
+
+    int x, y;
+    initialState[1][1] = 0;
+    printArray(initialState);
+    cout << endl;
+    cout << "Enter The Person's Position: (x,y)" << endl;
+
+    cin >> x >> y;
+    initialState[x][y] = 5;
+
     cout << "The initial game is :" << endl << endl;
     printArray(initialState);
     cout << endl << endl;
 
-    vector<array<int, 4>> QTable;
-    QLearningAlgorithm(initialState, QTable, y, episode);
 
-    // int x, y;
+    // To print the steps
+    int children [4][rows][columns];
+    int currentStateIndex = insertMatrix(states, initialState); 
+    int maximumAction = -1;
+    int nextStateNumber;
 
-    // printArray(initialState);
-    // cout << endl;
-    // cout << "Enter The Person's Position: (x,y)" << endl;
+    Array2D state = states[currentStateIndex];
 
-    // cin >> x >> y;
-    // initialState[x][y] = 5;
+    // loop till you reach the goal state
+    while (!IsGoal(state)){
+
+        for (int i = 0; i < 4; i++){
+            if (maximumAction < QTable[currentStateIndex][i]){
+                nextStateNumber = i;
+            }
+        }
+
+        printArray(state);
+        switch (nextStateNumber){
+
+        case 0:
+            cout << "Move Top" << endl;
+            break;
+
+        case 1:
+            cout << "Move Left" << endl;
+            break;
+        case 2:
+            cout << "Move Right" << endl;
+            break;
+        case 3:
+            cout << "Move Bottom" << endl;
+            break;
+        default:
+            break;
+        }
+        cout << endl;
+        
+        GenerateChildren(state, children);
+
+        for (int i=0; i<rows; i++){
+            for (int j=0; j<columns; j++){
+                state[i][j]=children[nextStateNumber][i][j];
+            }
+        }
+
+        currentStateIndex = insertMatrix(states, state);
+        maximumAction = -1;
+       
+    }
 
     return 0;
 }
@@ -148,10 +201,10 @@ void  GenerateChildren( Array2D state, int children [4][rows][columns]) {
     //     }
     // }
 
-    for (int child=0; child<4; child++){
-        for(int i=0; i<rows; i++){
-            for(int j=0; j<columns; j++){
-                children[child][i][j]=0;
+    for (int child = 0; child < 4; child++){
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < columns; j++){
+                children[child][i][j] = 0;
             }
         }
     }
@@ -164,41 +217,29 @@ void  GenerateChildren( Array2D state, int children [4][rows][columns]) {
                 // Top
                 // if top is empty or storage location 
                 if (i - 1 >= 0){
-                    if (state[i - 1][j] == emptySpace || state[i - 1][j] == storageLocation){
+                    if ((state[i - 1][j] == emptySpace) || (state[i - 1][j] == storageLocation)){
                     
                         copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
                         // If the the current person is setting on a storage location, when moving him keep the storage location       
-                        child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
+                        child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
 
                         /* If the place which we want to move to is storage location save it as personInStorage if it's empty 
                         store it as person */
-                        child[i - 1][j] = state[i - 1][j] == emptySpace ? person : personInStorage;
+                        child[i - 1][j] = ((state[i - 1][j] == emptySpace) ? person : personInStorage);
                         addChild(children, child, 0);
 
                     }else if (state[i - 1][j] == box || state[i - 1][j] == boxInStorage ) {                 
                         // if top is a box or box in a storage location
                         // if the place at the top of the box is empty, it will be 2
-                        if ( i-2 >= 0){
-                            if (state[i - 2][j] == emptySpace){
+                        if ( i - 2 >= 0){
                                 
                                 copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i - 1][j] = state[i-1][j] == box ? person : personInStorage;
-                                child[i - 2][j] = box;
+                                child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
+                                child[i - 1][j] = ((state[i - 1][j] == box) ? person : personInStorage);
+                                child[i - 2][j] = ((state[i - 2][j] == emptySpace) ? box : boxInStorage);
                                 addChild(children, child, 0);
-
-                            }else if (state[i - 2][j] == storageLocation){
-                                // if the place at the top of the box is a storage location, it will be 4 
-                    
-                                copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
-
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i - 1][j] = state[i-1][j] == box ? person : personInStorage;
-                                child[i - 2][j] = boxInStorage;
-                                addChild(children, child, 0);
-                            }
                         }
                     }
                 }
@@ -209,101 +250,69 @@ void  GenerateChildren( Array2D state, int children [4][rows][columns]) {
 
                         copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                        child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                        child[i][j - 1] = state[i][j - 1] == emptySpace ? person : personInStorage;
+                        child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
+                        child[i][j - 1] = ((state[i][j - 1] == emptySpace) ? person : personInStorage);
                         addChild(children, child, 1);
                     }else if (state[i][j - 1] == box || state[i][j - 1] == boxInStorage){
                         // if left is a box or box in a storage location
                         // if the place at the left of the box is empty, it will be 2
-                        if ( j-2 >= 0){
-                            if (state[i][j - 2] == emptySpace){
+                        if ( j - 2 >= 0){
                                 copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i ][j-1] = state[i][j-1] == box ? person : personInStorage;
-                                child[i][j - 2] = box;
+                                child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
+                                child[i ][j-1] = ((state[i][j - 1] == box) ? person : personInStorage);
+                                child[i][j - 2] = ((state[i][j - 2] == emptySpace)  ? box : boxInStorage );
                                 addChild(children, child, 1);
-
-                            }else if (state[i - 2][j] == storageLocation){
-                                // if the place at the left of the box is a storage location, it will be 4 
-                                copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
-
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i ][j-1] = state[i][j-1] == box ? person : personInStorage;
-                                child[i][j - 2] = boxInStorage;
-                                addChild(children, child, 1);
-                            }
                         }    
                     }
                 }
                 // Right
                 // if right is empty or storage location 
-                if (j+1 < columns){
+                if (j + 1 < columns){
                     if (state[i][j + 1] == emptySpace || state[i][j + 1] == storageLocation){
 
                         copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                        child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                        child[i][j + 1] = child[i][j + 1]  == emptySpace ? person : personInStorage;
+                        child[i][j] = ((state[i][j] == person )? emptySpace : storageLocation);
+                        child[i][j + 1] = ((state[i][j + 1]  == emptySpace) ? person : personInStorage);
                         addChild(children, child, 2);
 
                     } else if (state[i][j + 1] == box || state[i][j + 1] == boxInStorage){
                         // if right is a box or box in a storage location
                         // if the place at the right of the box is empty, it will be 2
-                        if (j+2 < columns){
-                            if (state[i][j + 2] == emptySpace){
+                        if (j + 2 < columns){
                                 
-                                copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
+                            copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i][j + 1] = state[i][j+1] == box ? person :personInStorage;
-                                child[i][j + 2] = box;
-                                addChild(children, child, 2);
-
-                            }else if (state[i][j + 2] == storageLocation){
-                                // if the place at the left of the box is a storage location, it will be 4 
-                                copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
-
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i][j + 1] = state[i][j+1] == box ? person :personInStorage;
-                                child[i][j + 2] = boxInStorage;
-                                addChild(children, child, 2);
-                            }
+                            child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
+                            child[i][j + 1] = ((state[i][j + 1] == box) ? person :personInStorage);
+                            child[i][j + 2] = (state[i][j + 2] == emptySpace) ? box : boxInStorage;
+                            addChild(children, child, 2);
                         }
                     } 
                 }
                 // Bottom
                 // if bottom is empty or storage location
-                if (i+1 <rows){
+                if (i + 1 < rows){
                     if (state[i + 1][j] == emptySpace || state[i + 1][j] == storageLocation){
                         
                         copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                        child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                        child[i + 1][j] = state[i + 1][j]  == emptySpace ? person : personInStorage;
+                        child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
+                        child[i + 1][j] = ((state[i + 1][j]  == emptySpace) ? person : personInStorage);
                         addChild(children, child, 3);
 
                     }else if (state[i + 1][j] == box || state[i + 1][j] == boxInStorage){
                         // if bottom is a box or box in a storage location
                         // if the place at the bottom of the box is empty, it will be 2
-                        if( i+2 < rows){
-                            if (state[i + 2][j] == emptySpace){
-                                
-                                copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
+                        if( i + 2 < rows){
+                           
+                            copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
 
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i + 1][j] = state[i][j]== box ? person : personInStorage;
-                                child[i + 2][j] = box;
-                                addChild(children, child, 3);
-                            }else if (state[i + 2][j] == storageLocation){
-                                // if the place at the bottom of the box is a storage location, it will be 4 
-                                copy(&state[0][0], &state[0][0] + rows * columns, &child[0][0]);
-
-                                child[i][j] = state[i][j] == person ? emptySpace : storageLocation;
-                                child[i + 1][j] = state[i][j]== box ? person : personInStorage;
-                                child[i + 2][j] = boxInStorage;
-                                addChild(children, child, 3);
-                            }
+                            child[i][j] = ((state[i][j] == person) ? emptySpace : storageLocation);
+                            child[i + 1][j] = ((state[i + 1][j]== box )? person : personInStorage);
+                            child[i + 2][j] = ((state[i + 2][j] == emptySpace) ? box : boxInStorage);
+                            addChild(children, child, 3);
                         }
                     }
                 }
@@ -363,7 +372,6 @@ bool isDeadLock( Array2D state){
 
 void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, double y, int episodes){
     
-    vector<Array2D> states;
     insertMatrix(states, initialState);
     
     int i=0;
@@ -374,33 +382,31 @@ void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, do
     GenerateChildren(state, initChildren);
     insertIntoQTable(QTable, initChildren);
 
-    int stateId, nextStateId;
+    int stateId = 0, nextStateId;
     int reward;
     Array2D nextState;
 
-    int c = 0;
+    int children [4][rows][columns];
+    int x ;
 
     // Loop for all episodes
     while (episodes--){
 
         // Do while the goal is not reached and not deadlock and i < 100000, in this case while the state != 5
         while (!IsGoal(state) && !isDeadLock(state) && i<10000){
-
-            int children [4][rows][columns];
+            
             GenerateChildren(state, children);
 
             // Select one random action from this state call it x, this action should be possible
-            int x = getRandomPossibleAction(children); // x from 0-3
+            x = getRandomPossibleAction(children); // x from 0-3
             
             // Since the deadlock fun doesn't handle all deadlocked states
             if (x == -1){
                 cout << "There is no valid action from this state" << endl;
                 return;
             }
-
-            // stateId = insertMatrix(states, state);
             
-
+            // Consider going to the next state N(S,X), We get that from children[x]
             // nextState = children[x];
             for (int i=0; i<rows; i++){
                 for (int j=0; j<columns; j++){
@@ -409,21 +415,13 @@ void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, do
             }
 
             nextStateId =  insertMatrix(states, nextState);
-
-            // cout << "NExt stTE" << endl;
-            // printArray(nextState);
-
-            GenerateChildren(nextState,children);
             
             // If the state is new it will be added as the last element in the states vector, hence we should add new row 
             // in the QTable to represent this state 
-
             if ( nextStateId == QTable.size()){
+                GenerateChildren(nextState,children);
                 insertIntoQTable(QTable, children);
             }
-
-            // Consider going to the next state N(S,X) 
-            // We get that from children[x]
 
             reward = getReward(nextState);
 
@@ -434,92 +432,15 @@ void QLearningAlgorithm( Array2D initialState, vector<array<int, 4>> &QTable, do
             }
 
             // Update the QTable according to this equation
-            if (QTable[stateId][x] != -1){
-                QTable[stateId][x] = reward + y * maximumQ;
-            }
+            QTable[stateId][x] = reward + y * maximumQ;
 
             // Update the state to be the next state which has been chosen randomly
             state = nextState;
+            stateId = nextStateId;
 
             i++;
-
         }
     }
-
-    // To print the solution steps 
-
-    // int currentStateIndex = 0; // initial State index
-    // int maximumAction = -1;
-    // int nextStateIndex = 0;
-
-    // state = states[currentStateIndex];
-
-    // int count  = 0;
-    // // int childs [4][rows][columns];
-    // int children [4][rows][columns];
-
-    // // loop till you reach the goal state
-    // while (!IsGoal(state)){
-        
-    //     // To get the maximum reword from all actions for the current state
-    //     for (int i = 0; i < 4; i++){
-    //         if (maximumAction < QTable[currentStateIndex][i]){
-    //             nextStateIndex = i;
-    //         }
-    //     }
-    //     GenerateChildren(state, children);
-
-    //     for (int i=0; i<rows; i++){
-    //         for (int j=0; j<columns; j++){
-    //             state[i][j]=children[nextStateIndex][i][j];
-    //         }
-    //     }
-
-    //     currentStateIndex = insertMatrix(states, state);
-    //     maximumAction = -1;
-    //     count++;
-
-    //     // printArray(state);
-
-    //     // cout << endl << endl; 
-    //     if (count == 20){
-    //         printArray(state);
-    //         break;
-    //     }
-    // }
-
-    // cout << endl;
-    // for (int i=0; i<4; i++){
-    //     cout << QTable[currentStateIndex][i] << " " ;
-    // }
-    // cout << endl;
-    // GenerateChildren(state, children);
-
-    
-    //  printArray(state);
-
-    //  cout << "!!!!!!!!!!!!!!!!!!!1" <<endl;
-
-    // for (int child=0; child<4; child++){
-    //     cout << "Child " << child << endl;
-    //     for (int i=0; i<rows; i++){
-    //         for (int j=0; j<columns; j++){
-    //             cout << children[child][i][j] << " ";
-    //         }   
-    //         cout << endl;
-    //     }
-    //     cout << endl << endl; 
-    // }
-
-    // cout << endl << endl << endl;
-
-    for (int i=0; i<QTable.size(); i++){
-        for (int j=0; j<4; j++){
-            cout << QTable[i][j] << " ";
-        }
-        cout << endl;
-    }
-
 }
 
 void insertIntoQTable(vector<array<int, 4>> &QTable, int children [4][rows][columns]){
@@ -577,7 +498,7 @@ int getReward(Array2D state) {
 }
 
 // Function to find the index of a matrix in the vector
-int findMatrixIndex( vector<Array2D>& matrixVec,  Array2D& matrix) {
+int findMatrixIndex(vector<Array2D>& matrixVec, const Array2D& matrix) {
     auto it = find(matrixVec.begin(), matrixVec.end(), matrix);
     if (it != matrixVec.end()) {
         return distance(matrixVec.begin(), it);
@@ -587,7 +508,7 @@ int findMatrixIndex( vector<Array2D>& matrixVec,  Array2D& matrix) {
 }
 
 // Function to insert a matrix into the vector and return its index
-int insertMatrix(vector<Array2D>& matrixVec,  Array2D& matrix) {
+int insertMatrix(vector<Array2D>& matrixVec, const Array2D& matrix) {
     int index = findMatrixIndex(matrixVec, matrix);
     if (index == -1) {
         matrixVec.push_back(matrix);
